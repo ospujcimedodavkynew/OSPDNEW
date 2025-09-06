@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import { useNavigate } from 'react-router-dom';
 import { Button, Card, Input, Label } from './ui';
-import { Customer, Vehicle } from '../types';
 
 const NewRentalForm: React.FC = () => {
     const { vehicles, customers, addRental } = useData();

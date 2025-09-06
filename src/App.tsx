@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { DataProvider, useData } from './context/DataContext';
+import { useData } from './context/DataContext';
 import Dashboard from './components/Dashboard';
 import Fleet from './components/Fleet';
 import Rentals from './components/Rentals';

@@ -24,8 +24,8 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [vehicles, setVehicles] = useState<Vehicle[]>(initialVehicles);
-    const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
+    const [vehicles, _setVehicles] = useState<Vehicle[]>(initialVehicles);
+    const [customers, _setCustomers] = useState<Customer[]>(initialCustomers);
     const [rentals, setRentals] = useState<Rental[]>(initialRentals);
     const [rentalRequests, setRentalRequests] = useState<RentalRequest[]>(initialRentalRequests);
     const [user, setUser] = useState<User | null>(() => {
