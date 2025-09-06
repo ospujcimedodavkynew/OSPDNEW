@@ -17,6 +17,7 @@ const Fleet: React.FC = () => {
                         <div className="mt-4 space-y-2">
                             <p><strong>SPZ:</strong> {vehicle.license_plate}</p>
                             <p><strong>VIN:</strong> {vehicle.vin}</p>
+                            {/* FIX: Use vehicle.pricing.perDay to align with updated Vehicle type */}
                             <p><strong>Cena/den:</strong> {vehicle.pricing.perDay} Kč</p>
                             <p><strong>STK do:</strong> {new Date(vehicle.stk_date).toLocaleDateString()}</p>
                             <p><strong>Dálniční známka do:</strong> {new Date(vehicle.vignette_until).toLocaleDateString()}</p>

@@ -1,12 +1,11 @@
-
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import { Button, Card, Input, Label } from './ui';
-import { Customer } from '../types';
+import { RentalRequest } from '../types';
 
 const CustomerFormPublic: React.FC = () => {
     const { addRentalRequest } = useData();
-    const [customerDetails, setCustomerDetails] = useState<Omit<Customer, 'id' | 'drivers_license_image_path'>>({
+    const [customerDetails, setCustomerDetails] = useState<Omit<RentalRequest, 'id' | 'drivers_license_image_base64' | 'digital_consent_at' | 'status'>>({
         first_name: '',
         last_name: '',
         email: '',
@@ -39,7 +38,7 @@ const CustomerFormPublic: React.FC = () => {
             return;
         }
         addRentalRequest({
-            customer_details: customerDetails,
+            ...customerDetails,
             drivers_license_image_base64: driversLicenseImage,
             digital_consent_at: new Date().toISOString(),
             status: 'pending',

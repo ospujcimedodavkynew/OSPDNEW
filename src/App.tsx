@@ -26,8 +26,16 @@ const NavLink: React.FC<{ to: string; icon: React.ReactNode; children: React.Rea
 };
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { user, logout } = useData();
+    const { user, logout, loading } = useData();
 
+    if (loading && user) {
+        return (
+            <div className="flex h-screen items-center justify-center bg-background text-white text-xl">
+                Načítání dat...
+            </div>
+        );
+    }
+    
     if (!user) {
         return <>{children}</>;
     }

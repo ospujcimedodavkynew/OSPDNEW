@@ -16,7 +16,8 @@ const CalendarView: React.FC = () => {
         return acc;
     }, {} as { [key: string]: typeof rentals });
 
-    const getVehicleName = (vehicleId: string) => {
+    // FIX: Changed vehicleId type from string to number to match Rental.vehicleId type.
+    const getVehicleName = (vehicleId: number) => {
         return vehicles.find(v => v.id === vehicleId)?.brand ?? 'Neznámé';
     }
 

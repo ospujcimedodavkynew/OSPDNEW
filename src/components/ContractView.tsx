@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '../context/DataContext';
@@ -11,7 +10,8 @@ const ContractView: React.FC = () => {
     const [isSigningCustomer, setIsSigningCustomer] = useState(false);
     const [isSigningCompany, setIsSigningCompany] = useState(false);
     
-    const rental = rentals.find(r => r.id === id);
+    const rentalId = id ? parseInt(id, 10) : undefined;
+    const rental = rentals.find(r => r.id === rentalId);
 
     if (!rental) {
         return <div>Smlouva nenalezena.</div>;
@@ -25,7 +25,9 @@ const ContractView: React.FC = () => {
     }
     
     const handleSaveSignature = (field: 'customer_signature' | 'company_signature', dataUrl: string) => {
-        updateRental(rental.id, { [field]: dataUrl });
+        if (rental.id) {
+           updateRental(rental.id, { [field]: dataUrl });
+        }
         setIsSigningCustomer(false);
         setIsSigningCompany(false);
     }

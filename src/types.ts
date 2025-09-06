@@ -1,18 +1,21 @@
 
 export interface ServiceRecord {
-  id: string;
+  id: number;
   date: string;
   description: string;
   cost: number;
 }
 
 export interface Vehicle {
-  id: string;
+  id: number;
   brand: string;
   license_plate: string;
   vin: string;
   year: number;
-  serviceHistory: ServiceRecord[];
+  // serviceHistory is in a separate table, removed for simplicity for now
+  // serviceHistory: ServiceRecord[]; 
+  // FIX: Replaced price_per_day and price_per_hour with a nested pricing object
+  // to match data structure used in the application context and components.
   pricing: {
     perDay: number;
     perHour?: number;
@@ -23,7 +26,7 @@ export interface Vehicle {
 }
 
 export interface Customer {
-  id: string;
+  id: number;
   first_name: string;
   last_name: string;
   email: string;
@@ -34,9 +37,9 @@ export interface Customer {
 }
 
 export interface Rental {
-  id: string;
-  vehicleId: string;
-  customerId: string;
+  id: number;
+  vehicleId: number;
+  customerId: number;
   startDate: string;
   endDate: string;
   totalPrice: number;
@@ -47,8 +50,13 @@ export interface Rental {
 }
 
 export interface RentalRequest {
-    id: string;
-    customer_details: Omit<Customer, 'id' | 'drivers_license_image_path'>;
+    id: number;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+    id_card_number: string;
+    drivers_license_number: string;
     drivers_license_image_base64: string | null;
     digital_consent_at: string;
     status: 'pending' | 'approved' | 'rejected';

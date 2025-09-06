@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Modal, Button } from './ui';
 import { RentalRequest } from '../types';
@@ -24,12 +23,12 @@ const RequestApprovalModal: React.FC<RequestApprovalModalProps> = ({
         <Modal isOpen={isOpen} onClose={onClose} title="Schválit žádost">
             <div>
                 <h3 className="text-lg font-bold mb-2">
-                    {rentalRequest.customer_details.first_name} {rentalRequest.customer_details.last_name}
+                    {rentalRequest.first_name} {rentalRequest.last_name}
                 </h3>
-                <p><strong>Email:</strong> {rentalRequest.customer_details.email}</p>
-                <p><strong>Telefon:</strong> {rentalRequest.customer_details.phone}</p>
-                <p><strong>Číslo OP:</strong> {rentalRequest.customer_details.id_card_number}</p>
-                <p><strong>Číslo ŘP:</strong> {rentalRequest.customer_details.drivers_license_number}</p>
+                <p><strong>Email:</strong> {rentalRequest.email}</p>
+                <p><strong>Telefon:</strong> {rentalRequest.phone}</p>
+                <p><strong>Číslo OP:</strong> {rentalRequest.id_card_number}</p>
+                <p><strong>Číslo ŘP:</strong> {rentalRequest.drivers_license_number}</p>
                 {rentalRequest.drivers_license_image_base64 && (
                     <div className="mt-4">
                         <strong>Snímek řidičského průkazu:</strong>

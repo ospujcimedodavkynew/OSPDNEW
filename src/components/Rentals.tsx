@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import { Link } from 'react-router-dom';
@@ -10,12 +9,12 @@ const Rentals: React.FC = () => {
     const { rentals, customers, vehicles, rentalRequests, updateRentalRequestStatus } = useData();
     const [selectedRequest, setSelectedRequest] = useState<RentalRequest | null>(null);
 
-    const getCustomerName = (customerId: string) => {
+    const getCustomerName = (customerId: number) => {
         const customer = customers.find(c => c.id === customerId);
         return customer ? `${customer.first_name} ${customer.last_name}` : 'Neznámý';
     };
 
-    const getVehicleName = (vehicleId: string) => {
+    const getVehicleName = (vehicleId: number) => {
         const vehicle = vehicles.find(v => v.id === vehicleId);
         return vehicle ? vehicle.brand : 'Neznámé';
     };
@@ -56,9 +55,9 @@ const Rentals: React.FC = () => {
                             <tbody>
                                 {rentalRequests.filter(r => r.status === 'pending').map(req => (
                                     <tr key={req.id} className="border-b border-gray-700">
-                                        <td className="p-2">{req.customer_details.first_name} {req.customer_details.last_name}</td>
-                                        <td className="p-2">{req.customer_details.email}</td>
-                                        <td className="p-2">{req.customer_details.phone}</td>
+                                        <td className="p-2">{req.first_name} {req.last_name}</td>
+                                        <td className="p-2">{req.email}</td>
+                                        <td className="p-2">{req.phone}</td>
                                         <td className="p-2">
                                             <Button onClick={() => setSelectedRequest(req)}>Zobrazit</Button>
                                         </td>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import { useNavigate } from 'react-router-dom';
@@ -15,7 +14,7 @@ const NewRentalForm: React.FC = () => {
 
     const calculatePrice = () => {
         if (!selectedVehicleId || !startDate || !endDate) return 0;
-        const vehicle = vehicles.find(v => v.id === selectedVehicleId);
+        const vehicle = vehicles.find(v => v.id === parseInt(selectedVehicleId, 10));
         if (!vehicle) return 0;
 
         const start = new Date(startDate).getTime();
@@ -23,6 +22,7 @@ const NewRentalForm: React.FC = () => {
         if (start >= end) return 0;
 
         const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+        // FIX: Use vehicle.pricing.perDay to align with updated Vehicle type.
         return days * vehicle.pricing.perDay;
     };
 
@@ -34,8 +34,8 @@ const NewRentalForm: React.FC = () => {
         }
 
         addRental({
-            vehicleId: selectedVehicleId,
-            customerId: selectedCustomerId,
+            vehicleId: parseInt(selectedVehicleId, 10),
+            customerId: parseInt(selectedCustomerId, 10),
             startDate,
             endDate,
             totalPrice: calculatePrice(),
