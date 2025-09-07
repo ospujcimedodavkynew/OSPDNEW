@@ -7,14 +7,15 @@ export default {
   theme: {
     extend: {
       colors: {
-        'background': '#111827',
-        'surface': '#1F2937',
+        'background': '#F3F4F6', // Light Gray
+        'surface': '#FFFFFF',    // White
         'primary': '#3B82F6',
         'primary-focus': '#2563EB',
         'secondary': '#8B5CF6',
         'accent': '#F59E0B',
-        'text-primary': '#F9FAFB',
-        'text-secondary': '#9CA3AF',
+        'text-primary': '#111827', // Dark Gray / Black
+        'text-secondary': '#4B5563', // Medium Gray
+        'border': '#D1D5DB', // Border color
       },
     },
   },

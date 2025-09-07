@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import { useNavigate } from 'react-router-dom';
@@ -44,6 +45,8 @@ const NewRentalForm: React.FC = () => {
 
         navigate('/rentals');
     };
+    
+    const selectStyles = "shadow appearance-none border rounded w-full py-2 px-3 bg-white text-text-primary leading-tight focus:outline-none focus:ring-2 focus:ring-primary-focus border-border";
 
     return (
         <Card>
@@ -51,14 +54,14 @@ const NewRentalForm: React.FC = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <Label htmlFor="vehicle">Vozidlo</Label>
-                    <select id="vehicle" value={selectedVehicleId} onChange={e => setSelectedVehicleId(e.target.value)} className="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-700 text-text-primary leading-tight focus:outline-none focus:shadow-outline border-gray-600">
+                    <select id="vehicle" value={selectedVehicleId} onChange={e => setSelectedVehicleId(e.target.value)} className={selectStyles}>
                         <option value="">Vyberte vozidlo</option>
                         {vehicles.map(v => <option key={v.id} value={v.id}>{v.brand} - {v.license_plate}</option>)}
                     </select>
                 </div>
                 <div>
                     <Label htmlFor="customer">Zákazník</Label>
-                     <select id="customer" value={selectedCustomerId} onChange={e => setSelectedCustomerId(e.target.value)} className="shadow appearance-none border rounded w-full py-2 px-3 bg-gray-700 text-text-primary leading-tight focus:outline-none focus:shadow-outline border-gray-600">
+                     <select id="customer" value={selectedCustomerId} onChange={e => setSelectedCustomerId(e.target.value)} className={selectStyles}>
                         <option value="">Vyberte zákazníka</option>
                         {customers.map(c => <option key={c.id} value={c.id}>{c.first_name} {c.last_name}</option>)}
                     </select>

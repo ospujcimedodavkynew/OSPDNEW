@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
@@ -23,7 +24,7 @@ const Login: React.FC = () => {
     };
 
     return (
-        <div className="flex items-center justify-center h-screen">
+        <div className="flex items-center justify-center h-screen bg-background">
             <Card className="w-full max-w-sm">
                 <form onSubmit={handleSubmit}>
                     <h1 className="text-2xl font-bold mb-6 text-center">Přihlášení</h1>

@@ -1,2 +1,2 @@
-// FIX: Uncommented to provide vite/client types for import.meta.env
+// Fix: This directive provides TypeScript types for Vite's `import.meta.env`.
 /// <reference types="vite/client" />

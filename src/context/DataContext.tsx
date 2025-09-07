@@ -12,6 +12,7 @@ interface DataContextType {
     rentals: Rental[];
     rentalRequests: RentalRequest[];
     loading: boolean;
+    addVehicle: (vehicle: Omit<Vehicle, 'id' | 'pricing'> & { price_per_day: number; price_per_hour?: number }) => Promise<void>;
     addRental: (rental: Omit<Rental, 'id'>) => Promise<void>;
     updateRental: (id: number, updates: Partial<Rental>) => Promise<void>;
     addRentalRequest: (request: Omit<RentalRequest, 'id'>) => Promise<void>;
@@ -36,6 +37,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     useEffect(() => {
         const fetchData = async () => {
+            if(!user) {
+                setLoading(false);
+                return;
+            };
             setLoading(true);
             try {
                 const [vehiclesRes, customersRes, rentalsRes, rentalRequestsRes] = await Promise.all([
@@ -46,7 +51,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 ]);
 
                 if (vehiclesRes.error) throw vehiclesRes.error;
-                // Map db pricing columns to frontend type
                 const vehicleData = vehiclesRes.data.map(v => ({ ...v, pricing: { perDay: v.price_per_day, perHour: v.price_per_hour }}));
                 setVehicles(vehicleData || []);
 
@@ -54,7 +58,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 setCustomers(customersRes.data || []);
 
                 if (rentalsRes.error) throw rentalsRes.error;
-                 // Map snake_case to camelCase
                 const rentalData = rentalsRes.data.map(r => ({
                     id: r.id,
                     vehicleId: r.vehicle_id,
@@ -71,7 +74,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 
                 if (rentalRequestsRes.error) throw rentalRequestsRes.error;
-                // Map flat structure to frontend type
                 const rentalRequestData = rentalRequestsRes.data.map(r => ({
                     id: r.id,
                     first_name: r.first_name,
@@ -94,7 +96,17 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         };
 
         fetchData();
-    }, []);
+    }, [user]);
+
+    const addVehicle = async (vehicle: Omit<Vehicle, 'id' | 'pricing'> & { price_per_day: number; price_per_hour?: number }) => {
+        const { data, error } = await supabase.from('vehicles').insert(vehicle).select().single();
+        if (error) {
+            console.error("Error adding vehicle:", error);
+        } else if (data) {
+            const newVehicle: Vehicle = { ...data, pricing: { perDay: data.price_per_day, perHour: data.price_per_hour }};
+            setVehicles(prev => [...prev, newVehicle]);
+        }
+    };
 
     const addRental = async (rental: Omit<Rental, 'id'>) => {
         const { data, error } = await supabase.from('rentals').insert({
@@ -188,6 +200,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         rentals,
         rentalRequests,
         loading,
+        addVehicle,
         addRental,
         updateRental,
         addRentalRequest,
