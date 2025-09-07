@@ -153,10 +153,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
          setRentals(prev => prev.map(r => r.id === id ? data : r));
        }
     }
-    const addRentalRequest = (request: Omit<RentalRequest, 'id'>) => {
+    const addRentalRequest = (_request: Omit<RentalRequest, 'id'>) => {
         // Implement Supabase call
     };
-    const updateRentalRequestStatus = (id: number, status: 'approved' | 'rejected') => {
+    const updateRentalRequestStatus = (_id: number, _status: 'approved' | 'rejected') => {
         // Implement Supabase call
     };
 

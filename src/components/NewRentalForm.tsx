@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, Input, Label, Stepper, Textarea } from './ui';
-import { Customer, Vehicle, Rental } from '../types';
+import { Button, Card, Input, Label, Stepper } from './ui';
+import { Customer, Rental } from '../types';
 import SignaturePad from './SignaturePad';
 
 // Krok 1: Formulář pro zadání údajů o zákazníkovi
@@ -46,7 +46,7 @@ const CustomerStep: React.FC<{ onCustomerCreated: (customer: Customer) => void }
 };
 
 // Krok 2: Výběr vozidla a termínu
-const VehicleStep: React.FC<{ customer: Customer; onVehicleSelected: (details: Omit<Rental, 'id' | 'customerId' | 'status'>) => void }> = ({ customer, onVehicleSelected }) => {
+const VehicleStep: React.FC<{ onVehicleSelected: (details: Omit<Rental, 'id' | 'customerId' | 'status'>) => void }> = ({ onVehicleSelected }) => {
     const { vehicles } = useData();
     const [vehicleId, setVehicleId] = useState<number | ''>('');
     const [startDate, setStartDate] = useState('');
@@ -179,7 +179,7 @@ const CreateRentalWizard: React.FC = () => {
             <Stepper steps={steps} currentStep={currentStep - 1} className="mb-8" />
             
             {currentStep === 1 && <CustomerStep onCustomerCreated={(c) => { setCustomer(c); setCurrentStep(2); }} />}
-            {currentStep === 2 && customer && <VehicleStep customer={customer} onVehicleSelected={(d) => { setRentalDetails(d); setCurrentStep(3); }} />}
+            {currentStep === 2 && <VehicleStep onVehicleSelected={(d) => { setRentalDetails(d); setCurrentStep(3); }} />}
             {currentStep === 3 && customer && rentalDetails && <ContractStep customer={customer} rentalDetails={rentalDetails} onContractSigned={(r) => { setFinalRental(r); setCurrentStep(4); sendContractByEmail(r.id); }} />}
             {currentStep === 4 && finalRental && <ConfirmationStep rental={finalRental} />}
         </Card>
