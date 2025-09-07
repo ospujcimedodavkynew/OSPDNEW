@@ -1,8 +1,6 @@
-
-
 import React from 'react';
 import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { useData } from './context/DataContext';
+import { DataProvider, useData } from './context/DataContext';
 import Dashboard from './components/Dashboard';
 import Fleet from './components/Fleet';
 import Rentals from './components/Rentals';
@@ -19,7 +17,7 @@ const NavLink: React.FC<{ to: string; icon: React.ReactNode; children: React.Rea
     const location = useLocation();
     const isActive = location.pathname === to;
     return (
-        <Link to={to} className={`flex items-center px-4 py-2 text-sm font-medium rounded-md ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-gray-100'}`}>
+        <Link to={to} className={`flex items-center px-4 py-2 text-sm font-medium rounded-md ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface'}`}>
             {icon}
             <span className="ml-3">{children}</span>
         </Link>
@@ -27,24 +25,16 @@ const NavLink: React.FC<{ to: string; icon: React.ReactNode; children: React.Rea
 };
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { user, logout, loading } = useData();
+    const { user, logout } = useData();
 
-    if (loading && user) {
-        return (
-            <div className="flex h-screen items-center justify-center bg-background text-text-primary text-xl">
-                Načítání dat...
-            </div>
-        );
-    }
-    
     if (!user) {
         return <>{children}</>;
     }
 
     return (
         <div className="flex h-screen bg-background text-text-primary">
-            <aside className="w-64 flex-shrink-0 bg-surface border-r border-border p-4">
-                <div className="text-2xl font-bold mb-8 text-primary">VanRent</div>
+            <aside className="w-64 flex-shrink-0 bg-gray-800 p-4">
+                <div className="text-2xl font-bold mb-8">VanRent</div>
                 <nav className="space-y-2">
                     <NavLink to="/" icon={<DashboardIcon className="h-5 w-5" />}>Dashboard</NavLink>
                     <NavLink to="/fleet" icon={<FleetIcon className="h-5 w-5" />}>Vozový park</NavLink>
@@ -53,7 +43,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     <NavLink to="/settings" icon={<SettingsIcon className="h-5 w-5" />}>Nastavení</NavLink>
                 </nav>
                 <div className="absolute bottom-4">
-                     <button onClick={logout} className="flex items-center px-4 py-2 text-sm font-medium rounded-md text-text-secondary hover:bg-gray-100 w-full text-left">
+                     <button onClick={logout} className="flex items-center px-4 py-2 text-sm font-medium rounded-md text-text-secondary hover:bg-surface w-full text-left">
                         Odhlásit se
                     </button>
                 </div>
