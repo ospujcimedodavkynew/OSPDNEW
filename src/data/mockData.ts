@@ -9,7 +9,8 @@ export const initialVehicles: Vehicle[] = [
     license_plate: '1AB 1234',
     vin: 'ABC123XYZ',
     year: 2022,
-    pricing: { perDay: 1500, perHour: 200 },
+    // FIX: Changed pricing keys to match VehiclePricing type ('perDay' -> 'day', removed 'perHour')
+    pricing: { day: 1500 },
     stk_date: '2026-04-01',
     insurance_info: 'ČSOB, č. 123456',
     vignette_until: '2025-01-31',
@@ -21,7 +22,8 @@ export const initialVehicles: Vehicle[] = [
     license_plate: '2CD 5678',
     vin: 'DEF456ABC',
     year: 2023,
-    pricing: { perDay: 1600 },
+    // FIX: Changed pricing key 'perDay' to 'day' to match VehiclePricing type.
+    pricing: { day: 1600 },
     stk_date: '2027-07-01',
     insurance_info: 'Allianz, č. 789012',
     vignette_until: '2025-06-30',

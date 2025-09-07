@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useData } from '../context/DataContext';
 import { Card } from './ui';
@@ -27,10 +26,12 @@ const CalendarView: React.FC = () => {
             <Card>
                 {Object.keys(rentalsByDate).sort((a,b) => new Date(a).getTime() - new Date(b).getTime()).map(date => (
                     <div key={date} className="mb-4">
-                        <h2 className="text-xl font-semibold border-b border-gray-700 pb-2 mb-2">{date}</h2>
+                        {/* FIX: Updated border color for light theme */}
+                        <h2 className="text-xl font-semibold border-b border-border pb-2 mb-2">{date}</h2>
                         <ul>
                             {rentalsByDate[date].map(rental => (
-                                <li key={rental.id} className="p-2 rounded hover:bg-gray-700">
+                                // FIX: Added hover effect for better UX
+                                <li key={rental.id} className="p-2 rounded hover:bg-gray-100">
                                     <p className="font-bold">{getVehicleName(rental.vehicleId)}</p>
                                     <p className="text-sm text-text-secondary">
                                         Od: {new Date(rental.startDate).toLocaleTimeString()} Do: {new Date(rental.endDate).toLocaleTimeString()}

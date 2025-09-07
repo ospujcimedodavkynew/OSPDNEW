@@ -45,7 +45,8 @@ const Rentals: React.FC = () => {
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
-                                <tr className="border-b border-gray-700">
+                                {/* FIX: Updated border color to match light theme */}
+                                <tr className="border-b border-border">
                                     <th className="p-2">Zákazník</th>
                                     <th className="p-2">Email</th>
                                     <th className="p-2">Telefon</th>
@@ -54,7 +55,8 @@ const Rentals: React.FC = () => {
                             </thead>
                             <tbody>
                                 {rentalRequests.filter(r => r.status === 'pending').map(req => (
-                                    <tr key={req.id} className="border-b border-gray-700">
+                                    // FIX: Updated border color to match light theme
+                                    <tr key={req.id} className="border-b border-border">
                                         <td className="p-2">{req.first_name} {req.last_name}</td>
                                         <td className="p-2">{req.email}</td>
                                         <td className="p-2">{req.phone}</td>
@@ -74,7 +76,8 @@ const Rentals: React.FC = () => {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="border-b border-gray-700">
+                            {/* FIX: Updated border color to match light theme */}
+                            <tr className="border-b border-border">
                                 <th className="p-2">Vozidlo</th>
                                 <th className="p-2">Zákazník</th>
                                 <th className="p-2">Od</th>
@@ -84,7 +87,8 @@ const Rentals: React.FC = () => {
                         </thead>
                         <tbody>
                             {rentals.map(rental => (
-                                <tr key={rental.id} className="border-b border-gray-700 hover:bg-gray-700">
+                                // FIX: Updated border and hover colors to match light theme
+                                <tr key={rental.id} className="border-b border-border hover:bg-gray-100">
                                     <td className="p-2">{getVehicleName(rental.vehicleId)}</td>
                                     <td className="p-2">{getCustomerName(rental.customerId)}</td>
                                     <td className="p-2">{new Date(rental.startDate).toLocaleString()}</td>

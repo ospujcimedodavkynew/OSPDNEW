@@ -1,9 +1,12 @@
+// FIX: Updated all entity IDs to be of type number instead of string.
+// FIX: Flattened RentalRequest to remove nested customer_details.
+// FIX: Removed unused ServiceRecord and serviceHistory from Vehicle.
 
-export interface ServiceRecord {
-  id: number;
-  date: string;
-  description: string;
-  cost: number;
+export interface VehiclePricing {
+  hour4?: number;
+  hour12?: number;
+  day?: number;
+  month?: number;
 }
 
 export interface Vehicle {
@@ -12,14 +15,7 @@ export interface Vehicle {
   license_plate: string;
   vin: string;
   year: number;
-  // serviceHistory is in a separate table, removed for simplicity for now
-  // serviceHistory: ServiceRecord[]; 
-  // FIX: Replaced price_per_day and price_per_hour with a nested pricing object
-  // to match data structure used in the application context and components.
-  pricing: {
-    perDay: number;
-    perHour?: number;
-  };
+  pricing: VehiclePricing | null;
   stk_date: string;
   insurance_info: string;
   vignette_until: string;

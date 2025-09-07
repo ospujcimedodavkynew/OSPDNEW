@@ -11,15 +11,15 @@ interface DataContextType {
     customers: Customer[];
     rentals: Rental[];
     rentalRequests: RentalRequest[];
-    loading: boolean;
-    addVehicle: (vehicle: Omit<Vehicle, 'id' | 'pricing'> & { price_per_day: number; price_per_hour?: number }) => Promise<void>;
-    addRental: (rental: Omit<Rental, 'id'>) => Promise<void>;
-    updateRental: (id: number, updates: Partial<Rental>) => Promise<void>;
-    addRentalRequest: (request: Omit<RentalRequest, 'id'>) => Promise<void>;
-    updateRentalRequestStatus: (id: number, status: 'approved' | 'rejected') => Promise<void>;
+    addVehicle: (vehicleData: Omit<Vehicle, 'id'>) => Promise<boolean>;
+    addRental: (rental: Omit<Rental, 'id'>) => void;
+    updateRental: (id: number, updates: Partial<Rental>) => void;
+    addRentalRequest: (request: Omit<RentalRequest, 'id'>) => void;
+    updateRentalRequestStatus: (id: number, status: 'approved' | 'rejected') => void;
     user: User | null;
     login: (email: string) => void;
     logout: () => void;
+    loading: boolean;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -30,63 +30,41 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [rentals, setRentals] = useState<Rental[]>([]);
     const [rentalRequests, setRentalRequests] = useState<RentalRequest[]>([]);
     const [loading, setLoading] = useState(true);
+
     const [user, setUser] = useState<User | null>(() => {
         const storedUser = localStorage.getItem('user');
         return storedUser ? JSON.parse(storedUser) : null;
     });
-
+    
     useEffect(() => {
         const fetchData = async () => {
-            if(!user) {
+            if (!user) {
                 setLoading(false);
                 return;
-            };
+            }
             setLoading(true);
             try {
-                const [vehiclesRes, customersRes, rentalsRes, rentalRequestsRes] = await Promise.all([
+                const [
+                    { data: vehiclesData, error: vehiclesError },
+                    { data: customersData, error: customersError },
+                    { data: rentalsData, error: rentalsError },
+                    { data: requestsData, error: requestsError }
+                ] = await Promise.all([
                     supabase.from('vehicles').select('*'),
                     supabase.from('customers').select('*'),
                     supabase.from('rentals').select('*'),
                     supabase.from('rental_requests').select('*')
                 ]);
 
-                if (vehiclesRes.error) throw vehiclesRes.error;
-                const vehicleData = vehiclesRes.data.map(v => ({ ...v, pricing: { perDay: v.price_per_day, perHour: v.price_per_hour }}));
-                setVehicles(vehicleData || []);
+                if (vehiclesError) throw vehiclesError;
+                if (customersError) throw customersError;
+                if (rentalsError) throw rentalsError;
+                if (requestsError) throw requestsError;
 
-                if (customersRes.error) throw customersRes.error;
-                setCustomers(customersRes.data || []);
-
-                if (rentalsRes.error) throw rentalsRes.error;
-                const rentalData = rentalsRes.data.map(r => ({
-                    id: r.id,
-                    vehicleId: r.vehicle_id,
-                    customerId: r.customer_id,
-                    startDate: r.start_date,
-                    endDate: r.end_date,
-                    totalPrice: r.total_price,
-                    status: r.status,
-                    customer_signature: r.customer_signature,
-                    company_signature: r.company_signature,
-                    digital_consent_at: r.digital_consent_at,
-                }));
-                setRentals(rentalData || []);
-
-
-                if (rentalRequestsRes.error) throw rentalRequestsRes.error;
-                const rentalRequestData = rentalRequestsRes.data.map(r => ({
-                    id: r.id,
-                    first_name: r.first_name,
-                    last_name: r.last_name,
-                    email: r.email,
-                    phone: r.phone,
-                    id_card_number: r.id_card_number,
-                    drivers_license_number: r.drivers_license_number,
-                    drivers_license_image_base64: r.drivers_license_image_base64,
-                    digital_consent_at: r.digital_consent_at,
-                    status: r.status,
-                }));
-                setRentalRequests(rentalRequestData || []);
+                setVehicles(vehiclesData || []);
+                setCustomers(customersData || []);
+                setRentals(rentalsData || []);
+                setRentalRequests(requestsData || []);
 
             } catch (error) {
                 console.error("Error fetching data:", error);
@@ -98,89 +76,48 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         fetchData();
     }, [user]);
 
-    const addVehicle = async (vehicle: Omit<Vehicle, 'id' | 'pricing'> & { price_per_day: number; price_per_hour?: number }) => {
-        const { data, error } = await supabase.from('vehicles').insert(vehicle).select().single();
-        if (error) {
-            console.error("Error adding vehicle:", error);
-        } else if (data) {
-            const newVehicle: Vehicle = { ...data, pricing: { perDay: data.price_per_day, perHour: data.price_per_hour }};
-            setVehicles(prev => [...prev, newVehicle]);
-        }
-    };
-
-    const addRental = async (rental: Omit<Rental, 'id'>) => {
-        const { data, error } = await supabase.from('rentals').insert({
-            vehicle_id: rental.vehicleId,
-            customer_id: rental.customerId,
-            start_date: rental.startDate,
-            end_date: rental.endDate,
-            total_price: rental.totalPrice,
-            status: rental.status,
-        }).select().single();
-
-        if (error) {
-            console.error("Error adding rental:", error);
-        } else if (data) {
-             const newRental: Rental = {
-                id: data.id,
-                vehicleId: data.vehicle_id,
-                customerId: data.customer_id,
-                startDate: data.start_date,
-                endDate: data.end_date,
-                totalPrice: data.total_price,
-                status: data.status,
-             };
-            setRentals(prev => [...prev, newRental]);
-        }
-    };
-
-    const updateRental = async (id: number, updates: Partial<Rental>) => {
-        const dbUpdates = {
-            ...(updates.startDate && { start_date: updates.startDate }),
-            ...(updates.endDate && { end_date: updates.endDate }),
-            ...(updates.totalPrice && { total_price: updates.totalPrice }),
-            ...(updates.status && { status: updates.status }),
-            ...(updates.customer_signature && { customer_signature: updates.customer_signature }),
-            ...(updates.company_signature && { company_signature: updates.company_signature }),
-        };
-
-        const { error } = await supabase.from('rentals').update(dbUpdates).eq('id', id);
+    const addVehicle = async (vehicleData: Omit<Vehicle, 'id'>) => {
+        const { data, error } = await supabase
+            .from('vehicles')
+            .insert([vehicleData])
+            .select();
         
         if (error) {
-            console.error("Error updating rental:", error);
-        } else {
-            setRentals(prev => prev.map(r => r.id === id ? {...r, ...updates} : r));
+            console.error('Error adding vehicle:', error);
+            alert(`Chyba při ukládání vozidla: ${error.message}`);
+            return false;
         }
+
+        if (data) {
+            setVehicles(prev => [...prev, ...data]);
+            return true;
+        }
+        return false;
+    };
+
+
+    const addRental = (rental: Omit<Rental, 'id'>) => {
+        const newRental: Rental = {
+            ...rental,
+            id: Math.max(0, ...rentals.map(r => r.id)) + 1,
+        };
+        setRentals(prev => [...prev, newRental]);
+    };
+
+    const updateRental = (id: number, updates: Partial<Rental>) => {
+        setRentals(prev => prev.map(r => r.id === id ? {...r, ...updates} : r));
     }
 
-    const addRentalRequest = async (request: Omit<RentalRequest, 'id'>) => {
-         const { data, error } = await supabase.from('rental_requests').insert({
-            first_name: request.first_name,
-            last_name: request.last_name,
-            email: request.email,
-            phone: request.phone,
-            id_card_number: request.id_card_number,
-            drivers_license_number: request.drivers_license_number,
-            drivers_license_image_base64: request.drivers_license_image_base64,
-            digital_consent_at: request.digital_consent_at,
-            status: request.status,
-        }).select().single();
-        
-        if (error) {
-            console.error("Error adding rental request:", error);
-        } else if (data) {
-            setRentalRequests(prev => [...prev, data]);
-        }
+    const addRentalRequest = (request: Omit<RentalRequest, 'id'>) => {
+        const newRequest: RentalRequest = {
+            ...request,
+            id: Math.max(0, ...rentalRequests.map(r => r.id)) + 1,
+        };
+        setRentalRequests(prev => [...prev, newRequest]);
     };
 
-    const updateRentalRequestStatus = async (id: number, status: 'approved' | 'rejected') => {
-        const { error } = await supabase.from('rental_requests').update({ status }).eq('id', id);
-        
-        if (error) {
-            console.error("Error updating rental request:", error);
-        } else {
-            setRentalRequests(prev => prev.map(req => req.id === id ? {...req, status} : req));
-        }
+    const updateRentalRequestStatus = (id: number, status: 'approved' | 'rejected') => {
+        setRentalRequests(prev => prev.map(req => req.id === id ? {...req, status} : req));
     };
 
     const login = (email: string) => {
@@ -199,7 +136,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         customers,
         rentals,
         rentalRequests,
-        loading,
         addVehicle,
         addRental,
         updateRental,
@@ -208,6 +144,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         user,
         login,
         logout,
+        loading,
     }), [vehicles, customers, rentals, rentalRequests, user, loading]);
 
     return (
