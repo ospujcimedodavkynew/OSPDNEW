@@ -27,7 +27,7 @@ const Login: React.FC = () => {
     return (
         <div className="flex items-center justify-center h-screen bg-background">
             <Card className="w-full max-w-sm">
-                <h1 className="text-2xl font-bold mb-6 text-center">Přihlášení</h1>
+                <h1 className="text-2xl font-bold mb-6 text-center">Přihlášení do administrace</h1>
                 <form onSubmit={handleLogin} className="space-y-4">
                     <div>
                         <Label htmlFor="email">Email</Label>
