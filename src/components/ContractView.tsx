@@ -10,6 +10,7 @@ const ContractView: React.FC = () => {
     const [isSigningCustomer, setIsSigningCustomer] = useState(false);
     const [isSigningCompany, setIsSigningCompany] = useState(false);
     
+    // FIX: Parse ID from string to number for correct lookup.
     const rentalId = id ? parseInt(id, 10) : undefined;
     const rental = rentals.find(r => r.id === rentalId);
 
@@ -25,8 +26,8 @@ const ContractView: React.FC = () => {
     }
     
     const handleSaveSignature = (field: 'customer_signature' | 'company_signature', dataUrl: string) => {
-        if (rental.id) {
-           updateRental(rental.id, { [field]: dataUrl });
+        if (rental) {
+             updateRental(rental.id, { [field]: dataUrl });
         }
         setIsSigningCustomer(false);
         setIsSigningCompany(false);

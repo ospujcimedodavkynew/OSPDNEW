@@ -1,55 +1,58 @@
-import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect, useMemo, useCallback } from 'react';
 import { Vehicle, Customer, Rental, RentalRequest } from '../types';
 import { supabase } from '../supabaseClient';
-import { User, Session } from '@supabase/supabase-js';
+import { AuthChangeEvent, Session, User } from '@supabase/supabase-js';
 
 interface DataContextType {
     vehicles: Vehicle[];
     customers: Customer[];
     rentals: Rental[];
     rentalRequests: RentalRequest[];
+    addRental: (rental: Omit<Rental, 'id'>) => Promise<boolean>;
+    updateRental: (id: number, updates: Partial<Rental>) => Promise<boolean>;
+    addRentalRequest: (request: Omit<RentalRequest, 'id'>) => Promise<boolean>;
+    updateRentalRequestStatus: (id: number, status: 'approved' | 'rejected') => Promise<boolean>;
     addVehicle: (vehicle: Omit<Vehicle, 'id'>) => Promise<boolean>;
-    addCustomer: (customer: Omit<Customer, 'id'>) => Promise<Customer | null>;
-    addRental: (rental: Omit<Rental, 'id'>) => Promise<Rental | null>;
-    updateRental: (id: number, updates: Partial<Rental>) => Promise<void>;
-    addRentalRequest: (request: Omit<RentalRequest, 'id'>) => void;
-    updateRentalRequestStatus: (id: number, status: 'approved' | 'rejected') => void;
-    sendContractByEmail: (rentalId: number) => Promise<void>;
     user: User | null;
-    login: (email: string, pass: string) => Promise<boolean>;
-    logout: () => void;
+    login: (email: string, password: string) => Promise<boolean>;
+    logout: () => Promise<void>;
     loading: boolean;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
-
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [rentals, setRentals] = useState<Rental[]>([]);
     const [rentalRequests, setRentalRequests] = useState<RentalRequest[]>([]);
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
 
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            const [vehiclesRes, customersRes, rentalsRes, rentalRequestsRes] = await Promise.all([
+            const [
+                { data: vehiclesData, error: vehiclesError },
+                { data: customersData, error: customersError },
+                { data: rentalsData, error: rentalsError },
+                { data: rentalRequestsData, error: rentalRequestsError },
+            ] = await Promise.all([
                 supabase.from('vehicles').select('*'),
                 supabase.from('customers').select('*'),
                 supabase.from('rentals').select('*'),
-                supabase.from('rental_requests').select('*')
+                supabase.from('rental_requests').select('*'),
             ]);
-            if (vehiclesRes.error) throw vehiclesRes.error;
-            if (customersRes.error) throw customersRes.error;
-            if (rentalsRes.error) throw rentalsRes.error;
-            if (rentalRequestsRes.error) throw rentalRequestsRes.error;
-            
-            setVehicles(vehiclesRes.data || []);
-            setCustomers(customersRes.data || []);
-            setRentals(rentalsRes.data || []);
-            setRentalRequests(rentalRequestsRes.data || []);
+
+            if (vehiclesError) throw vehiclesError;
+            if (customersError) throw customersError;
+            if (rentalsError) throw rentalsError;
+            if (rentalRequestsError) throw rentalRequestsError;
+
+            setVehicles(vehiclesData || []);
+            setCustomers(customersData || []);
+            setRentals(rentalsData || []);
+            setRentalRequests(rentalRequestsData || []);
 
         } catch (error) {
             console.error("Error fetching data:", error);
@@ -59,116 +62,123 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, []);
 
     useEffect(() => {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session: Session | null) => {
+        const checkUser = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
             setUser(session?.user ?? null);
             if (session?.user) {
-                fetchData();
+                await fetchData();
             } else {
                 setLoading(false);
             }
-        });
-        
-        // Initial check
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          if (!session) {
-            setLoading(false);
-          }
-        });
+        };
 
-        return () => subscription.unsubscribe();
+        checkUser();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+            async (_event: AuthChangeEvent, session: Session | null) => {
+                setUser(session?.user ?? null);
+                if (session?.user) {
+                    await fetchData();
+                }
+            }
+        );
+
+        return () => {
+            subscription?.unsubscribe();
+        };
     }, [fetchData]);
 
-    const login = async (email: string, pass: string) => {
-        const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
-        return !error;
+    const addRental = async (rental: Omit<Rental, 'id'>): Promise<boolean> => {
+        const { data, error } = await supabase.from('rentals').insert([rental]).select();
+        if (error) {
+            console.error("Error adding rental:", error);
+            return false;
+        }
+        if (data) {
+            setRentals(prev => [...prev, ...data]);
+        }
+        return true;
     };
 
-    const logout = async () => {
-        await supabase.auth.signOut();
-        setVehicles([]);
-        setCustomers([]);
-        setRentals([]);
-        setRentalRequests([]);
-        setUser(null);
+    const updateRental = async (id: number, updates: Partial<Rental>): Promise<boolean> => {
+        const { error } = await supabase.from('rentals').update(updates).eq('id', id);
+        if (error) {
+            console.error("Error updating rental:", error);
+            return false;
+        }
+        setRentals(prev => prev.map(r => r.id === id ? {...r, ...updates} : r));
+        return true;
+    };
+
+    const addRentalRequest = async (request: Omit<RentalRequest, 'id'>): Promise<boolean> => {
+        const { data, error } = await supabase.from('rental_requests').insert([request]).select();
+         if (error) {
+            console.error("Error adding rental request:", error);
+            return false;
+        }
+        if (data) {
+           setRentalRequests(prev => [...prev, ...data]);
+        }
+        return true;
+    };
+
+    const updateRentalRequestStatus = async (id: number, status: 'approved' | 'rejected'): Promise<boolean> => {
+        const { error } = await supabase.from('rental_requests').update({ status }).eq('id', id);
+        if (error) {
+            console.error("Error updating rental request:", error);
+            return false;
+        }
+        setRentalRequests(prev => prev.map(req => req.id === id ? {...req, status} : req));
+        return true;
     };
 
     const addVehicle = async (vehicle: Omit<Vehicle, 'id'>): Promise<boolean> => {
         const { data, error } = await supabase.from('vehicles').insert([vehicle]).select();
         if (error) {
             console.error("Error adding vehicle:", error);
-            alert("Chyba při ukládání vozidla: " + error.message);
             return false;
         }
         if (data) {
-           setVehicles(prev => [...prev, ...data]);
+            setVehicles(prev => [...prev, ...data]);
         }
         return true;
     };
 
-    const addCustomer = async (customer: Omit<Customer, 'id'>): Promise<Customer | null> => {
-        const { data, error } = await supabase.from('customers').insert([customer]).select().single();
-        if (error) {
-            console.error("Error adding customer:", error);
-            alert("Chyba při ukládání zákazníka: " + error.message);
-            return null;
-        }
-        if (data) {
-            setCustomers(prev => [...prev, data]);
-        }
-        return data;
+    const login = async (email: string, password: string): Promise<boolean> => {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        return !error;
     };
 
-    const addRental = async (rental: Omit<Rental, 'id'>): Promise<Rental | null> => {
-        const { data, error } = await supabase.from('rentals').insert([rental]).select().single();
-        if (error) {
-            console.error("Error adding rental:", error);
-            alert("Chyba při vytváření zápůjčky: " + error.message);
-            return null;
-        }
-        if (data) {
-            setRentals(prev => [...prev, data]);
-        }
-        return data;
-    };
-    
-    const sendContractByEmail = async (rentalId: number) => {
-        try {
-            const { error } = await supabase.functions.invoke('send-contract', {
-                body: { rentalId },
-            });
-            if (error) throw error;
-            console.log("Email function invoked successfully for rental ID:", rentalId);
-            alert("Smlouva byla úspěšně odeslána.");
-        } catch (error) {
-            console.error("Error invoking email function:", error);
-            alert("Chyba při odesílání smlouvy. Funkce je pravděpodobně neaktivní. Viz logy.");
-        }
+    const logout = async () => {
+        await supabase.auth.signOut();
+        setUser(null);
+        setVehicles([]);
+        setCustomers([]);
+        setRentals([]);
+        setRentalRequests([]);
     };
 
-    // --- Mock functions to be replaced ---
-    const updateRental = async (id: number, updates: Partial<Rental>) => {
-       const { data, error } = await supabase.from('rentals').update(updates).eq('id', id).select().single();
-       if(error) console.error(error);
-       if(data) {
-         setRentals(prev => prev.map(r => r.id === id ? data : r));
-       }
-    }
-    const addRentalRequest = (_request: Omit<RentalRequest, 'id'>) => {
-        // Implement Supabase call
-    };
-    const updateRentalRequestStatus = (_id: number, _status: 'approved' | 'rejected') => {
-        // Implement Supabase call
-    };
+    const value = useMemo(() => ({
+        vehicles,
+        customers,
+        rentals,
+        rentalRequests,
+        addRental,
+        updateRental,
+        addRentalRequest,
+        updateRentalRequestStatus,
+        addVehicle,
+        user,
+        login,
+        logout,
+        loading,
+    }), [vehicles, customers, rentals, rentalRequests, user, loading, addRental, updateRental, addRentalRequest, updateRentalRequestStatus, addVehicle, login, logout]);
 
-
-    const value: DataContextType = {
-        vehicles, customers, rentals, rentalRequests,
-        addVehicle, addCustomer, addRental, updateRental,
-        addRentalRequest, updateRentalRequestStatus, sendContractByEmail,
-        user, login, logout, loading,
-    };
-
-    return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
+    return (
+        <DataContext.Provider value={value}>
+            {children}
+        </DataContext.Provider>
+    );
 };
 
 export const useData = () => {
