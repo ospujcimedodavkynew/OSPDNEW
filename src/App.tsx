@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import { Routes, Route, Link, useLocation, Navigate, Outlet } from 'react-router-dom';
 import { useData } from './context/DataContext';
 import Dashboard from './components/Dashboard';
 import Fleet from './components/Fleet';
@@ -25,12 +25,8 @@ const NavLink: React.FC<{ to: string; icon: React.ReactNode; children: React.Rea
     );
 };
 
-const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { user, logout, loading } = useData();
-
-    if (!user) {
-        return <>{children}</>;
-    }
+const MainLayout: React.FC = () => {
+    const { logout, loading } = useData();
 
     return (
         <div className="flex h-screen bg-background text-text-primary">
@@ -54,7 +50,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     <div className="flex items-center justify-center h-full">
                         <Card><p>Načítání dat...</p></Card>
                     </div>
-                ) : children}
+                ) : <Outlet />}
             </main>
         </div>
     );
@@ -63,26 +59,27 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 const App = () => {
   return (
     <Routes>
+      {/* Public routes render without the MainLayout */}
       <Route path="/login" element={<Login />} />
       <Route path="/public/request" element={<CustomerFormPublic />} />
       
+      {/* Protected routes are nested inside a route that renders the MainLayout */}
       <Route element={<ProtectedRoute />}>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/fleet" element={<Fleet />} />
-        <Route path="/rentals" element={<Rentals />} />
-        <Route path="/rentals/new" element={<CreateRentalWizard />} />
-        <Route path="/rentals/:id" element={<ContractView />} />
-        <Route path="/calendar" element={<CalendarView />} />
-        <Route path="/settings" element={<Settings />} />
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/fleet" element={<Fleet />} />
+          <Route path="/rentals" element={<Rentals />} />
+          <Route path="/rentals/new" element={<CreateRentalWizard />} />
+          <Route path="/rentals/:id" element={<ContractView />} />
+          <Route path="/calendar" element={<CalendarView />} />
+          <Route path="/settings" element={<Settings />} />
+        </Route>
       </Route>
 
+      {/* Redirect any unknown paths */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
 }
 
-const Root = () => {
-    return <Layout><App /></Layout>
-}
-
-export default Root;
+export default App;
